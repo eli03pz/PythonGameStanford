@@ -1,0 +1,68 @@
+@startuml Diagrama de clases
+skinparam classAttributeIconSize 0
+skinparam monochrome true
+hide empty members
+
+package "Engine" {
+    class ECSWorld {
+        + create_entity()
+        + add_component()
+        + get_entities_with_components()
+    }
+    class GameStateManager {
+        + state
+        + set_state()
+    }
+}
+
+package "Utils" {
+    enum GameState {
+        MENU_PRINCIPAL
+        JUGANDO_SINGLE_PLAYER
+        SALIR
+    }
+}
+
+package "Components" {
+    class PositionComponent
+    class DimensionsComponent
+    class RenderComponent
+    class TextComponent
+    class ButtonComponent {
+        + action: GameState
+        + state: string
+    }
+}
+
+package "Systems" {
+    class MenuInputSystem {
+        + process(events)
+    }
+    class MenuRenderSystem {
+        + process()
+    }
+}
+
+' Relaciones de Composición
+ECSWorld *-- PositionComponent
+ECSWorld *-- DimensionsComponent
+ECSWorld *-- RenderComponent
+ECSWorld *-- TextComponent
+ECSWorld *-- ButtonComponent
+
+' Dependencias de los Sistemas
+MenuInputSystem ..> ECSWorld : "queries"
+MenuInputSystem ..> GameStateManager : "updates state"
+MenuInputSystem ..> ButtonComponent : "reads/writes state"
+
+MenuRenderSystem ..> ECSWorld : "queries"
+MenuRenderSystem ..> ButtonComponent : "reads state"
+MenuRenderSystem ..> RenderComponent : "reads colors"
+MenuRenderSystem ..> TextComponent : "reads text"
+MenuRenderSystem ..> pygame.Surface : "draws on"
+
+' Relación de uso de Enum
+GameStateManager o-- GameState
+ButtonComponent o-- GameState
+
+@enduml

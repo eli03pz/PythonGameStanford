@@ -1,76 +1,65 @@
-
-from components.menu_components import PositionComponent, DimensionsComponent, RenderComponent, TextComponent, ButtonComponent, ClickableComponent
+from scenes.base_scene import BaseScene
 from utils.game_state import GameState
-from engine.ecs_world import ECSWorld # Asume que tienes una clase ECSWorld en engine/ecs_world.py
+from systems.menu_systems import MenuInputSystem, MenuRenderSystem
+from components.menu_components import (
+    PositionComponent,
+    DimensionsComponent,
+    RenderComponent,
+    TextComponent,
+    ButtonComponent
+)
 
-class MainMenuScene:
-    def __init__(self, world: ECSWorld, screen, game_state_manager):
-        self.world = world
-        self.screen = screen
-        self.game_state_manager = game_state_manager
-        self.entities = [] # Para almacenar las entidades de esta escena y poder limpiarlas.
-
+class MainMenuScene(BaseScene):
     def setup(self):
-        # Limpia cualquier entidad existente si la escena se recarga
-        self.cleanup()
-
-        # Fondo del menú (opcional)
-        background_entity = self.world.create_entity()
-        self.world.add_component(background_entity, PositionComponent(0, 0))
-        self.world.add_component(background_entity, DimensionsComponent(self.screen.get_width(), self.screen.get_height()))
-        self.world.add_component(background_entity, RenderComponent(image_path="assets/images/background_menu.png")) # ¡Ruta de tu Pixel Art de fondo!
-        self.entities.append(background_entity)
-
-        # Título del juego
-        title_entity = self.world.create_entity()
-        self.world.add_component(title_entity, PositionComponent(self.screen.get_width() / 2 - 150, 100))
-        self.world.add_component(title_entity, TextComponent("MI JUEGO PIXELADO", 48, (255, 255, 255), font_path="assets/fonts/arcadeclassic/ARCADECLASSIC.TTF")) # Fuente Pixel Art
-        self.entities.append(title_entity)
-
-        # Botón JUGAR (Single Player)
-        play_button_entity = self.world.create_entity()
-        self.world.add_component(play_button_entity, PositionComponent(self.screen.get_width() / 2 - 100, 250))
-        self.world.add_component(play_button_entity, DimensionsComponent(200, 50))
-        self.world.add_component(play_button_entity, RenderComponent(color=(0, 200, 0))) # Color del botón
-        self.world.add_component(play_button_entity, TextComponent("JUGAR (1P)", 32, (255, 255, 255), font_path="assets/fonts/arcadeclassic/ARCADECLASSIC.TTF"))
-        self.world.add_component(play_button_entity, ClickableComponent())
-        self.world.add_component(play_button_entity, ButtonComponent(GameState.JUGANDO_SINGLE_PLAYER))
-        self.entities.append(play_button_entity)
-
-        # Botón JUGAR (Two Players)
-        two_players_button_entity = self.world.create_entity()
-        self.world.add_component(two_players_button_entity, PositionComponent(self.screen.get_width() / 2 - 100, 320))
-        self.world.add_component(two_players_button_entity, DimensionsComponent(200, 50))
-        self.world.add_component(two_players_button_entity, RenderComponent(color=(0, 150, 0)))
-        self.world.add_component(two_players_button_entity, TextComponent("JUGAR (2P)", 32, (255, 255, 255), font_path="assets/fonts/arcadeclassic/ARCADECLASSIC.TTF"))
-        self.world.add_component(two_players_button_entity, ClickableComponent())
-        self.world.add_component(two_players_button_entity, ButtonComponent(GameState.JUGANDO_TWO_PLAYERS))
-        self.entities.append(two_players_button_entity)
-
-        # Botón SALIR
-        exit_button_entity = self.world.create_entity()
-        self.world.add_component(exit_button_entity, PositionComponent(self.screen.get_width() / 2 - 100, 390))
-        self.world.add_component(exit_button_entity, DimensionsComponent(200, 50))
-        self.world.add_component(exit_button_entity, RenderComponent(color=(200, 0, 0)))
-        self.world.add_component(exit_button_entity, TextComponent("SALIR", 32, (255, 255, 255), font_path="assets/fonts/arcadeclassic/ARCADECLASSIC.TTF"))
-        self.world.add_component(exit_button_entity, ClickableComponent())
-        self.world.add_component(exit_button_entity, ButtonComponent(GameState.SALIR))
-        self.entities.append(exit_button_entity)
+        """
+        Crea los sistemas y entidades específicas para esta escena.
+        """
+        print("MainMenuScene: Configurando sistemas y entidades del menú.")
+        self.input_system = MenuInputSystem(self.game.world, self.game.game_state_manager)
+        self.render_system = MenuRenderSystem(self.game.world, self.game.screen, self.game.game_state_manager)
+        
+        self.menu_entities = []
+        
+        button_width, button_height = 300, 60
+        start_x = (self.game.screen_width - button_width) / 2
+        button_spacing = 20
+        # Corregimos el cálculo para centrarlo perfectamente
+        num_buttons = 3
+        total_menu_height = (num_buttons * button_height) + ((num_buttons - 1) * button_spacing)
+        start_y = (self.game.screen_height / 2) - (total_menu_height / 2)
+        
+        buttons_to_create = [
+            ("Play", GameState.JUGANDO_SINGLE_PLAYER),
+            ("Two players", GameState.JUGANDO_TWO_PLAYERS),
+            ("Opciones", GameState.OPCIONES),
+            ("Salir", GameState.SALIR)
+        ]
+        
+        for i, (text, action) in enumerate(buttons_to_create):
+            entity_id = self.game.world.create_entity()
+            self.menu_entities.append(entity_id)
+            
+            y_pos = start_y + i * (button_height + button_spacing)
+            self.game.world.add_component(entity_id, PositionComponent(start_x, y_pos))
+            self.game.world.add_component(entity_id, DimensionsComponent(button_width, button_height))
+            self.game.world.add_component(entity_id, RenderComponent((41, 128, 185), (52, 152, 219), (35, 110, 155)))
+            self.game.world.add_component(entity_id, TextComponent(text, 40, (236, 240, 241)))
+            self.game.world.add_component(entity_id, ButtonComponent(action))
 
     def cleanup(self):
-        # Elimina todas las entidades creadas por esta escena
-        for entity_id in self.entities:
-            self.world.remove_entity(entity_id)
-        self.entities = []
+        """
+        Elimina las entidades de esta escena para que no persistan en la siguiente.
+        """
+        print(f"MainMenuScene: Limpiando {len(self.menu_entities)} entidades.")
+        for entity_id in self.menu_entities:
+            self.game.world.remove_entity(entity_id)
+        self.menu_entities.clear()
 
-    def handle_event(self, event):
-        # No hay lógica de eventos directa en la escena, los sistemas de input la manejan.
-        pass
+    def handle_events(self, events):
+        self.input_system.process(events)
 
     def update(self, dt):
-        # La lógica de actualización del menú es mínima, principalmente renderizado y entrada.
-        pass
+        pass 
 
-    def draw(self):
-        # El sistema de renderizado se encarga de dibujar.
-        pass
+    def draw(self, screen):
+        self.render_system.process()

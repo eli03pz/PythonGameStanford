@@ -1,51 +1,32 @@
+# ARCHIVO: components/menu_components.py
+# RESPONSABILIDAD: Definir los bloques de datos (Componentes)
+# que utilizan las entidades del menú.
+
+import pygame
 from utils.game_state import GameState
 
 class PositionComponent:
     def __init__(self, x, y):
-        self.x = x
-        self.y = y
+        self.x, self.y = x, y
 
 class DimensionsComponent:
     def __init__(self, width, height):
-        self.width = width
-        self.height = height
+        self.width, self.height = width, height
 
 class RenderComponent:
-    def __init__(self, image_path=None, color=None):
-        """
-        Componente para renderizar una imagen o un color de fondo.
-        image_path: Ruta al archivo de imagen (para Pixel Art).
-        color: Tupla RGB para un color sólido (ej. (255, 0, 0) para rojo).
-        """
-        self.image_path = image_path
-        self.color = color
+    def __init__(self, color_normal, color_hover, color_clicked):
+        self.color_normal = color_normal
+        self.color_hover = color_hover
+        self.color_clicked = color_clicked
 
 class TextComponent:
-    def __init__(self, text, font_size, color, font_path=None):
-        """
-        Componente para renderizar texto.
-        text: La cadena de texto a mostrar.
-        font_size: Tamaño de la fuente.
-        color: Tupla RGB del color del texto.
-        font_path: Ruta al archivo de fuente (ej. .ttf)
-        """
+    def __init__(self, text, font_size, color):
         self.text = text
         self.font_size = font_size
         self.color = color
-        self.font_path = font_path
+        self.font = pygame.font.Font(None, self.font_size)
 
 class ButtonComponent:
     def __init__(self, action: GameState):
-        """
-        Componente que marca una entidad como un botón.
-        action: El GameState al que se cambiará cuando se haga clic en este botón.
-        """
         self.action = action
-
-class ClickableComponent:
-    def __init__(self):
-        """
-        Componente que indica que una entidad puede ser clicada.
-        Los sistemas de entrada interactuarán con entidades que tengan este componente.
-        """
-        pass
+        self.state = 'normal'  # 'normal', 'hover', 'clicked'

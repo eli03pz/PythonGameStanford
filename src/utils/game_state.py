@@ -1,14 +1,14 @@
-from enum import Enum
+from enum import Enum, auto
 
 class GameState(Enum):
     """
-    Enum representing the different states of the game.
+    Defines the different states the game can be in.
+    Using Enum ensures type safety and readability.
     """
-    MENU_PRINCIPAL = 1
-    JUGANDO_SINGLE_PLAYER = 2
-    JUGANDO_TWO_PLAYERS = 3
-    PAUSA = 4
-    GAME_OVER = 5
-    SALIR = 6
-    
- 
+    # Using auto() is a clean way to assign unique values automatically
+    MENU_PRINCIPAL = auto()
+    JUGANDO_SINGLE_PLAYER = auto()
+    JUGANDO_TWO_PLAYERS = auto()
+    OPCIONES = auto()
+    PAUSA = auto()
+    SALIR = auto()
