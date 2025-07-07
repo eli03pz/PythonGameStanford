@@ -2,6 +2,7 @@
 
 import pygame
 from scenes.base_scene import BaseScene
+from systems.effects_systems import ParticleSystem
 from utils.game_state import GameState
 # Importamos todos los componentes y sistemas que usaremos
 from components.game_components import *
@@ -32,6 +33,8 @@ class GameScene(BaseScene):
         self.paddle_collision_system = PaddleCollisionSystem(self.game.world)
         self.scoring_system = ScoringSystem(self.game.world, self.game.screen_width, self.game.screen_height)
         self.render_system = GameRenderSystem(self.game.world, self.game.screen)
+        
+        self.particle_system = ParticleSystem(self.game.world) # <-- Crea el sistema
 
         # --- 2. Crear las entidades del juego ---
         
@@ -107,13 +110,20 @@ class GameScene(BaseScene):
                         return
 
     def update(self, dt):
-        self.ai_system.process()
-        self.movement_system.process(dt)
-        self.ball_boundary_system.process()
-        self.paddle_collision_system.process()
+        # Actualizamos el estado de las partículas
+        self.particle_system.update(dt)
+        # Solo actualizamos el resto del juego si no estamos esperando un reseteo
+        if not self.scoring_system.waiting_to_reset:
+            self.ai_system.process()
+            self.movement_system.process(dt)
+            self.ball_boundary_system.process()
+            self.paddle_collision_system.process()
         self.scoring_system.process()
 
     def draw(self, screen):
+        
+         # Dibujamos las partículas
+        self.particle_system.draw(screen)
         # Dibujar entidades del juego (palas, pelota, marcador)
         self.render_system.process()
         

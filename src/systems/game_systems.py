@@ -3,6 +3,7 @@
 
 import pygame
 import random
+from components.effects_components import ParticleComponent
 from components.menu_components import PositionComponent, DimensionsComponent
 from components.game_components import (
     VelocityComponent, PaddleComponent, BallComponent, ScoreComponent, AIControlledComponent
@@ -111,24 +112,30 @@ class PaddleCollisionSystem:
                             return # Salir tras una colisión para evitar bugs
 
 class ScoringSystem:
-    """ÚNICA RESPONSABILIDAD: Gestionar la puntuación y el reseteo de la pelota."""
+    """Gestiona la puntuación, reseteo, y ahora los efectos de celebración."""
     def __init__(self, world, screen_width, screen_height):
         self.world = world
-        self.sw = screen_width
-        self.sh = screen_height
+        self.sw, self.sh = screen_width, screen_height
+        
+        # Nuevos atributos para la pausa
+        self.waiting_to_reset = False
+        self.reset_timer = 0
+        self.ball_to_reset = None
+
     def process(self):
-        for ball_id in self.world.get_entities_with_components(BallComponent, PositionComponent):
-            b_pos = self.world.get_component(ball_id, PositionComponent)
-            b_dim = self.world.get_component(ball_id, DimensionsComponent)
-            
-            # Punto para jugador 2
-            if b_pos.x <= -b_dim.width:
-                self.handle_score(ball_id, 2)
-                return
-            # Punto para jugador 1
-            if b_pos.x >= self.sw:
-                self.handle_score(ball_id, 1)
-                return
+        # Si estamos esperando, comprobamos si ha pasado el tiempo
+        if self.waiting_to_reset and pygame.time.get_ticks() >= self.reset_timer:
+            self.reset_ball(self.ball_to_reset)
+            self.waiting_to_reset = False
+            self.ball_to_reset = None
+        
+        # La lógica de detección de puntos solo se ejecuta si no estamos esperando
+        if not self.waiting_to_reset:
+            for ball_id in self.world.get_entities_with_components(BallComponent, PositionComponent):
+                b_pos = self.world.get_component(ball_id, PositionComponent)
+                b_dim = self.world.get_component(ball_id, DimensionsComponent)
+                if b_pos.x <= -b_dim.width: self.handle_score(ball_id, 2); return
+                if b_pos.x >= self.sw: self.handle_score(ball_id, 1); return
                 
     def handle_score(self, ball_id, scoring_player):
         for score_entity in self.world.get_entities_with_components(ScoreComponent):
@@ -137,6 +144,30 @@ class ScoringSystem:
                 score_comp.score += 1
                 break
         self.reset_ball(ball_id)
+        
+        # Detener la pelota y crear el confeti
+        b_pos = self.world.get_component(ball_id, PositionComponent)
+        b_vel = self.world.get_component(ball_id, VelocityComponent)
+        self.create_confetti(b_pos.x, b_pos.y)
+        b_vel.vx, b_vel.vy = 0, 0 # Detenemos la pelota
+        
+        # Configurar el temporizador para el reseteo
+        self.waiting_to_reset = True
+        self.reset_timer = pygame.time.get_ticks() + 1000 # 1000 ms = 1 segundo
+        self.ball_to_reset = ball_id
+    
+    def create_confetti(self, x, y):
+        """Crea una explosión de 30 partículas de confeti."""
+        for _ in range(30):
+            entity = self.world.create_entity()
+            self.world.add_component(entity, PositionComponent(x, y))
+            angle = random.uniform(0, 2 * 3.14159)
+            speed = random.uniform(50, 150)
+            velocity = (pygame.math.Vector2(1, 0).rotate(random.uniform(0, 360))) * speed
+            lifetime = random.randint(500, 1500)
+            color = random.choice([(255, 192, 203), (173, 216, 230), (255, 255, 0)])
+            self.world.add_component(entity, ParticleComponent(lifetime, velocity, color))
+
 
     def reset_ball(self, ball_id):
         b_pos = self.world.get_component(ball_id, PositionComponent)
