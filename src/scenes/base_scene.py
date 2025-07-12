@@ -1,28 +1,54 @@
+"""
+base_scene.py
+-------------
+Defines the BaseScene class, which acts as an interface for all game scenes.
+All scenes should inherit from this class and implement its methods.
 
-# ======================================================================
-# ARCHIVO: scenes/base_scene.py (NUEVO Y RECOMENDADO)
-# RESPONSABILIDAD: Definir la "interfaz" que todas las escenas deben seguir.
-# ======================================================================
+Classes:
+    BaseScene: Abstract base class for game scenes, providing a standard interface.
+"""
 class BaseScene:
+    """
+    Abstract base class for all game scenes.
+
+    Attributes:
+        game: Reference to the main game object, providing access to screen, world, game_state_manager, etc.
+
+    Methods:
+        setup():
+            Called once when the scene becomes active. Create entities and systems here.
+
+        cleanup():
+            Called once when the scene is deactivated. Clean up entities here.
+
+        handle_events(events):
+            Handles the list of Pygame events each frame.
+
+        update(dt):
+            Updates the scene logic each frame.
+
+        draw(screen):
+            Draws the scene to the screen.
+    """
     def __init__(self, game):
         self.game = game # Proporciona acceso a screen, world, game_state_manager, etc.
     
     def setup(self):
-        """Se llama una vez cuando la escena se vuelve activa. Crear entidades y sistemas aquí."""
+        """Called once when the scene becomes active. Create entities and systems here."""
         pass
     
     def cleanup(self):
-        """Se llama una vez cuando la escena se desactiva. Limpiar entidades aquí."""
+        """Called once when the scene is deactivated. Clean up entities here."""
         pass
 
     def handle_events(self, events):
-        """Maneja la lista de eventos de Pygame en cada fotograma."""
+        """Handles the list of Pygame events each frame."""
         pass
 
     def update(self, dt):
-        """Actualiza la lógica de la escena en cada fotograma."""
+        """Updates the scene logic each frame."""
         pass
 
     def draw(self, screen):
-        """Dibuja la escena en la pantalla."""
+        """Draws the scene to the screen."""
         pass

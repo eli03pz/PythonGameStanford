@@ -9,6 +9,7 @@ class GameState(Enum):
     MENU_PRINCIPAL = auto()
     JUGANDO_SINGLE_PLAYER = auto()
     JUGANDO_TWO_PLAYERS = auto()
+    JUGANDO_SHRINK_MODE = auto()
     OPCIONES = auto()
     PAUSA = auto()
     SALIR = auto()

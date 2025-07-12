@@ -1,3 +1,13 @@
+"""
+main_menu_scene.py
+------------------
+Implements the main menu scene for the game, including setup, cleanup,
+event handling, updating, and drawing using ECS systems.
+
+Classes:
+    MainMenuScene: Handles the creation and management of menu entities and systems.
+"""
+
 from scenes.base_scene import BaseScene
 from utils.game_state import GameState
 from systems.menu_systems import MenuInputSystem, MenuRenderSystem
@@ -10,9 +20,28 @@ from components.menu_components import (
 )
 
 class MainMenuScene(BaseScene):
+    """
+    Main menu scene for the game.
+
+    Methods:
+        setup():
+            Initializes menu systems and creates menu button entities.
+
+        cleanup():
+            Removes menu entities when leaving the scene.
+
+        handle_events(events):
+            Processes input events for the menu.
+
+        update(dt):
+            Updates the menu scene (currently empty).
+
+        draw(screen):
+            Renders the menu using the MenuRenderSystem.
+    """
     def setup(self):
         """
-        Crea los sistemas y entidades específicas para esta escena.
+        Initializes menu systems and creates menu button entities.
         """
         print("MainMenuScene: Configurando sistemas y entidades del menú.")
         self.input_system = MenuInputSystem(self.game.world, self.game.game_state_manager)
@@ -31,6 +60,7 @@ class MainMenuScene(BaseScene):
         buttons_to_create = [
             ("Play", GameState.JUGANDO_SINGLE_PLAYER),
             ("Two players", GameState.JUGANDO_TWO_PLAYERS),
+            ("Palas Encogidas", GameState.JUGANDO_SHRINK_MODE),
             ("Opciones", GameState.OPCIONES),
             ("Salir", GameState.SALIR)
         ]
@@ -48,7 +78,7 @@ class MainMenuScene(BaseScene):
 
     def cleanup(self):
         """
-        Elimina las entidades de esta escena para que no persistan en la siguiente.
+        Removes menu entities when leaving the scene to prevent persistence.
         """
         print(f"MainMenuScene: Limpiando {len(self.menu_entities)} entidades.")
         for entity_id in self.menu_entities:
@@ -56,10 +86,19 @@ class MainMenuScene(BaseScene):
         self.menu_entities.clear()
 
     def handle_events(self, events):
+        """
+        Processes input events for the menu.
+        """
         self.input_system.process(events)
 
     def update(self, dt):
+        """
+        Updates the menu scene. (Currently not used.)
+        """
         pass 
 
     def draw(self, screen):
+        """
+        Renders the menu using the MenuRenderSystem.
+        """
         self.render_system.process()

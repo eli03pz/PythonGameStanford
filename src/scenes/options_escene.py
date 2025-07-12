@@ -1,25 +1,65 @@
-# ARCHIVO: scenes/options_scene.py
+"""
+options_escene.py
+-----------------
+Implements the options scene for configuring player controls.
+Includes ECS components and systems for input handling and rendering.
+
+Classes:
+    PositionComponent: Stores the position (x, y) of an entity.
+    DimensionsComponent: Stores the width and height of an entity.
+    ButtonComponent: Represents a button with an action and state.
+    KeyBindingComponent: Stores key binding info for a player and action.
+    OptionsInputSystem: Handles input events for key rebinding and navigation.
+    OptionsRenderSystem: Renders the options menu, key bindings, and buttons.
+    OptionsScene: Main scene class for options, manages setup, cleanup, events, and rendering.
+"""
 
 import pygame
-import sys
 from scenes.base_scene import BaseScene
 from utils.game_state import GameState
 
 # --- Componentes específicos para la escena de Opciones ---
 class PositionComponent:
+    """
+    Stores the position of an entity.
+
+    Attributes:
+        x (int): X coordinate.
+        y (int): Y coordinate.
+    """
     def __init__(self, x, y): self.x, self.y = x, y
 
 class DimensionsComponent:
+    """
+    Stores the dimensions of an entity.
+
+    Attributes:
+        width (int): Width of the entity.
+        height (int): Height of the entity.
+    """
     def __init__(self, w, h): self.width, self.height = w, h
 
 class ButtonComponent:
-    """Componente para botones. La acción es lo que sucede al hacer clic."""
+    """
+    Represents a button with an action and state.
+
+    Attributes:
+        state (str): Current button state ('normal', 'hover', etc.).
+        action: The action to trigger when clicked (usually a GameState).
+    """
     def __init__(self, action=None):
         self.state = 'normal'
         self.action = action
 
 class KeyBindingComponent:
-    """Guarda la información de qué control representa esta entidad."""
+    """
+    Stores key binding info for a player and action.
+
+    Attributes:
+        player (str): Player identifier ('player1', 'player2').
+        action (str): Action name ('up', 'down').
+        is_listening (bool): True if waiting for a new key input.
+    """
     def __init__(self, player, action):
         self.player = player
         self.action = action
@@ -28,6 +68,15 @@ class KeyBindingComponent:
 # --- Sistemas específicos para la escena de Opciones ---
 
 class OptionsInputSystem:
+    """
+    Handles input events for key rebinding and navigation in the options menu.
+
+    Attributes:
+        world: Reference to the ECS world.
+        gsm: Reference to the GameStateManager.
+        config: Reference to the ConfigManager.
+        listening_entity: Entity currently waiting for key input.
+    """
     def __init__(self, world, gsm, config_manager):
         self.world = world
         self.gsm = gsm
@@ -35,6 +84,12 @@ class OptionsInputSystem:
         self.listening_entity = None
 
     def process(self, events):
+        """
+        Processes input events for key rebinding, button clicks, and ESC navigation.
+
+        Args:
+            events (list): List of Pygame events.
+        """
         for event in events:
             # 1. Si estamos esperando una tecla, la capturamos
             if self.listening_entity is not None and event.type == pygame.KEYDOWN:
@@ -76,6 +131,15 @@ class OptionsInputSystem:
                 self.gsm.set_state(GameState.MENU_PRINCIPAL)
 
 class OptionsRenderSystem:
+    """
+    Renders the options menu, key bindings, and buttons.
+
+    Attributes:
+        world: Reference to the ECS world.
+        screen: Pygame surface to draw on.
+        config: Reference to the ConfigManager.
+        font_label, font_key, font_title, font_footer: Font objects for rendering text.
+    """
     def __init__(self, world, screen, config_manager):
         self.world, self.screen, self.config = world, screen, config_manager
         self.font_label = pygame.font.Font(None, 40)
@@ -84,6 +148,9 @@ class OptionsRenderSystem:
         self.font_footer = pygame.font.Font(None, 28)
 
     def process(self):
+        """
+        Renders the options menu, key bindings, and the "Back" button.
+        """
         # Título e instrucciones
         title_surf = self.font_title.render("Opciones de Control", True, "white")
         self.screen.blit(title_surf, title_surf.get_rect(centerx=self.screen.get_width()/2, y=50))
@@ -120,7 +187,29 @@ class OptionsRenderSystem:
 # --- Clase Principal de la Escena ---
 
 class OptionsScene(BaseScene):
+    """
+    Main scene class for the options menu.
+
+    Methods:
+        setup():
+            Initializes entities and systems for the options menu.
+
+        cleanup():
+            Removes all entities created by this scene.
+
+        handle_events(events):
+            Processes input events for the options menu.
+
+        update(dt):
+            Updates the scene logic (currently unused).
+
+        draw(screen):
+            Renders the options menu.
+    """
     def setup(self):
+        """
+        Initializes entities and systems for the options menu.
+        """
         self.entities = []
         self.input_system = OptionsInputSystem(self.game.world, self.game.game_state_manager, self.game.config_manager)
         self.render_system = OptionsRenderSystem(self.game.world, self.game.screen, self.game.config_manager)
@@ -141,9 +230,33 @@ class OptionsScene(BaseScene):
         self.game.world.add_component(back_button_id, ButtonComponent(GameState.MENU_PRINCIPAL))
 
     def cleanup(self):
+        """
+        Removes all entities created by this scene.
+        """
         for entity_id in self.entities: self.game.world.remove_entity(entity_id)
         self.entities.clear()
 
-    def handle_events(self, events): self.input_system.process(events)
-    def update(self, dt): pass
-    def draw(self, screen): self.render_system.process()
+    def handle_events(self, events): 
+        """
+        Processes input events for the options menu.
+
+        Args:
+            events (list): List of Pygame events.
+        """
+        self.input_system.process(events)
+    def update(self, dt): 
+        """
+        Updates the scene logic (currently unused).
+
+        Args:
+            dt (float): Delta time since last frame.
+        """
+        pass
+    def draw(self, screen): 
+        """
+        Renders the options menu.
+
+        Args:
+            screen: The Pygame surface to draw on.
+        """
+        self.render_system.process()
